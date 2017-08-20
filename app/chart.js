@@ -10,6 +10,9 @@ export default class {
                 right: 30,
                 bottom: 20
             },
+            axisLabelSize: 15,
+            xAxisLabel: "",
+            yAxisLabel: "",
             xmin: 0,
             xmax: 1E6,
             ymin: 0,
@@ -34,6 +37,24 @@ export default class {
     height (val) {
         if (!arguments.length) return this.settings.height
         this.settings.height = val
+        return this
+    }
+
+    axisLabelSize (val) {
+        if (!arguments.length) return this.settings.axisLabelSize
+        this.settings.axisLabelSize = val
+        return this
+    }
+
+    xAxisLabel (val) {
+        if (!arguments.length) return this.settings.xAxisLabel
+        this.settings.xAxisLabel = val
+        return this
+    }
+
+    yAxisLabel (val) {
+        if (!arguments.length) return this.settings.yAxisLabel
+        this.settings.yAxisLabel = val
         return this
     }
 
@@ -73,64 +94,83 @@ export default class {
         this.selector = selector
         this.svg = d3.select(this.selector)
             .append('svg')
-            .attr('width', this.settings.width + this.settings.margin.right + this.settings.margin.left)
-            .attr('height', this.settings.height + this.settings.margin.top + this.settings.margin.bottom)
+            .attr('width', this.settings.width + this.settings.margin.right + this.settings.margin.left + this.settings.axisLabelSize)
+            .attr('height', this.settings.height + this.settings.margin.top + this.settings.margin.bottom + this.settings.axisLabelSize)
 
         this.line = d3.line()
             .x(d => this.xScale(d[0]) + this.settings.margin.left)
             .y(d => this.yScale(d[1]) + this.settings.margin.top)
     }
 
-    scale () {
+    graph () {
+        this.svg
+            .append('path')
+            .attr('class', 'line')
+
+        this._xAxis = this.svg.append('g')
+            .attr('class', 'axis')
+
+        this._yAxis = this.svg.append('g')
+            .attr('class', 'axis')
+
+        this._xAxisLabel = this.svg.append("text")
+            .attr("class", "xaxislabel")
+
+        this._yAxisLabel = this.svg.append("text")
+            .attr("class", "yaxislabel")
+
+    }
+
+    plot () {
+        const n = ~~(this.settings.width / this.settings.step)
+
+        const data = [...Array(n).keys()]
+            .map(x => ~~(x*this.settings.step * (this.settings.xmax / this.settings.width)))
+            .map(x => [x, this.settings.fn(x)])
+
         this.xScale = d3.scaleLinear()
             .domain([this.settings.xmin, this.settings.xmax])
             .range([0, this.settings.width])
 
         this.yScale = d3.scaleLinear()
-
             .domain([this.settings.ymin, this.settings.ymax])
             .range([this.settings.height, 0])
 
-        this.xAxis = d3.axisBottom(this.xScale)
-            .ticks(5)
-
-        this.yAxis = d3.axisLeft(this.yScale)
-            .ticks(5)
-    }
-
-    graph () {
-        const n = ~~(this.settings.width / this.settings.step)
-        const data = [...Array(n).keys()]
-            .map(x => ~~(x*this.settings.step * (this.settings.xmax / this.settings.width)))
-            .map(x => [x, this.settings.fn(x)])
-
-        this.scale()
-
-        this.svg
-            .append('path')
-            .attr('class', 'line')
-            .attr('d', this.line(data))
-
-        this.svg.append('g')
-            .attr('transform', `translate(${this.settings.margin.left}, ${this.settings.height + this.settings.margin.top})`)
-            .call(this.xAxis)
-            .attr('class', 'axis')
-
-        this.svg.append('g')
-            .attr('transform', `translate(${this.settings.margin.left}, ${this.settings.margin.top})`)
-            .call(this.yAxis)
-            .attr('class', 'axis')
-
-    }
-
-    replot () {
-        const n = ~~(this.settings.width / this.settings.step)
-        const data = [...Array(n).keys()]
-            .map(x => ~~(x*this.settings.step * (this.settings.xmax / this.settings.width)))
-            .map(x => [x, this.settings.fn(x)])
 
         this.svg
             .select('path')
             .attr('d', this.line(data))
+            .attr('transform', `translate(${this.settings.axisLabelSize}, 0)`)
+
+        const xAxis = d3.axisBottom(this.xScale)
+            .ticks(5)
+
+        const yAxis = d3.axisLeft(this.yScale)
+            .ticks(5)
+
+        this._xAxis
+            .attr('transform', `translate(${this.settings.margin.left + this.settings.axisLabelSize}, ${this.settings.height + this.settings.margin.top})`)
+            .call(xAxis)
+
+        this._yAxis
+            .attr('transform', `translate(${this.settings.margin.left + this.settings.axisLabelSize}, ${this.settings.margin.top})`)
+            .call(yAxis)
+
+
+        this._xAxisLabel
+            .attr("text-anchor", "end")
+            .attr("x", this.settings.width)
+            .attr("y", this.settings.height +
+                       this.settings.margin.top +
+                       this.settings.margin.bottom +
+                       this.settings.axisLabelSize
+            )
+            .text(this.settings.xAxisLabel);
+
+        this._yAxisLabel
+            .attr("text-anchor", "end")
+            .attr("dy", ".75em")
+            .attr("transform", "rotate(-90)")
+            .text(this.settings.yAxisLabel)
     }
 }
