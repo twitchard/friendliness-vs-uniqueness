@@ -20,8 +20,11 @@ chart.plot()
 
 const alphabetChooser = new AlphabetChooser('#alphabetChooser')
 alphabetChooser.render()
-alphabetChooser.onAlphabetLength(x=>alphabetSlider.value=x)
-alphabetChooser.onAlphabetLength(x=>alphabetLabel.value=x)
+alphabetChooser.onAlphabetLength(x => {
+    alphabetSlider.value=x
+    alphabetLabel.value=x
+    refreshChart()
+})
 
 /**
  * Returns a function that calls `fn` if it has not

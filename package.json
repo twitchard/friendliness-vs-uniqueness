@@ -4,5 +4,10 @@
     "babel-loader": "^7.0.0",
     "babel-preset-env": "^1.5.1",
     "webpack": "^2.6.1"
+  },
+  "dependencies": {
+    "d3": "^5.7.0",
+    "jss": "^9.8.7",
+    "jss-preset-default": "^10.0.0-alpha.3"
   }
 }
